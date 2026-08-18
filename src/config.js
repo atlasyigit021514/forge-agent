@@ -9,7 +9,7 @@ export const defaults = {
     name: "OpenAI-compatible",
     baseUrl: process.env.FORGE_API_BASE_URL || "",
     apiKey: process.env.FORGE_API_KEY || "",
-    model: process.env.FORGE_MODEL || "",
+    model: process.env.FORGE_MODEL || "deepseek-ai/DeepSeek-V4-Flash-0731",
     headers: {},
     includeUsage: false,
     maxRetries: 3,

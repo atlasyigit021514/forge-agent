@@ -45,6 +45,8 @@ The runtime calls `POST {baseEndpoint}/chat/completions`. Extra provider headers
 
 Forge is designed for providers that implement OpenAI-compatible streaming chat completions and tool calling. DeepInfra and ModelFlare have both been tested successfully. Other compatible providers should work without code changes, although provider-specific differences in streaming or tool-call behavior may require configuration.
 
+The default model identifier is `deepseek-ai/DeepSeek-V4-Flash-0731`. Change it in Settings or through `FORGE_MODEL` when your provider exposes a different identifier.
+
 Failed requests are retried for network errors, HTTP 408/409/425/429, and HTTP 5xx responses. Retry attempts and the initial backoff delay are configurable in Settings; permanent 4xx errors fail immediately.
 
 ## Autonomous runs and live progress
@@ -58,7 +60,7 @@ Environment variables can provide initial values:
 ```powershell
 $env:FORGE_API_KEY="..."
 $env:FORGE_API_BASE_URL="https://your-endpoint/v1"
-$env:FORGE_MODEL="your-model"
+$env:FORGE_MODEL="deepseek-ai/DeepSeek-V4-Flash-0731"
 npm start
 ```
 
