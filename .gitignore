@@ -1,0 +1,5 @@
+node_modules/
+.env
+.agent-data/
+dist/
+npm-debug.log*

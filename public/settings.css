@@ -1,0 +1,56 @@
+.panel-grid article { min-width: 0; }
+
+.check {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  margin: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0d100e;
+  color: #cbd3cd;
+  cursor: pointer;
+}
+
+.check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--lime);
+}
+
+.accent-card {
+  border-color: #52633d !important;
+  box-shadow: 0 0 0 1px #b8f35c12, inset 0 1px #b8f35c12;
+}
+
+.setting-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0b0e0c;
+  color: var(--muted);
+  font: 11px ui-monospace, monospace;
+}
+
+.setting-state i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 10px #b8f35c88;
+}
+
+.panel-grid hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 20px 0;
+}
+
+.panel-grid input[type="number"] { font-variant-numeric: tabular-nums; }

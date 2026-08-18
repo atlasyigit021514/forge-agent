@@ -1,0 +1,25 @@
+{
+  "name": "forge-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local, configurable coding and computer-use AI agent.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atlasyigit021514/forge-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atlasyigit021514/forge-agent/issues"
+  },
+  "homepage": "https://github.com/atlasyigit021514/forge-agent#readme",
+  "keywords": ["ai-agent", "token-optimization", "openai-compatible", "local-first", "autonomous-agent"],
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
