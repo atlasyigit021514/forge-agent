@@ -6,7 +6,7 @@
 
 > A local-first autonomous agent with a web GUI, persistent tools, and an experimental Token Kernel for aggressively bounded model context.
 
-Forge is a local coding and computer-command agent inspired by terminal-first tools such as Claude Code. It provides an editable system prompt, persistent memory, installable `SKILL.md` capability packs, and an OpenAI-compatible model connection suitable for a ModelFlare endpoint.
+Forge is a local coding and computer-command agent inspired by terminal-first tools such as Claude Code. It provides an editable system prompt, persistent memory, installable `SKILL.md` capability packs, and a provider-neutral connection for OpenAI-compatible APIs.
 
 ⭐ If Forge helps your workflow, star the repository—it helps others discover the project.
 
@@ -36,11 +36,16 @@ npm start
 
 Open [http://127.0.0.1:4317](http://127.0.0.1:4317), select **Settings**, and enter:
 
-- **Base endpoint:** your OpenAI-compatible ModelFlare API root, normally ending in `/v1`
-- **API key:** the key supplied by ModelFlare
+- **Provider name:** any label you want to display in the UI
+- **Base endpoint:** the provider's OpenAI-compatible API root, normally ending in `/v1`
+- **API key:** the key supplied by your provider
 - **Model:** the exact model identifier exposed by that endpoint
 
 The runtime calls `POST {baseEndpoint}/chat/completions`. Extra provider headers can be added directly to `.agent-data/config.json` under `provider.headers` if the service requires them.
+
+Forge is designed for providers that implement OpenAI-compatible streaming chat completions and tool calling. DeepInfra and ModelFlare have both been tested successfully. Other compatible providers should work without code changes, although provider-specific differences in streaming or tool-call behavior may require configuration.
+
+The default model identifier is `deepseek-ai/DeepSeek-V4-Flash-0731`. Change it in Settings or through `FORGE_MODEL` when your provider exposes a different identifier.
 
 Failed requests are retried for network errors, HTTP 408/409/425/429, and HTTP 5xx responses. Retry attempts and the initial backoff delay are configurable in Settings; permanent 4xx errors fail immediately.
 
@@ -53,9 +58,9 @@ The default autonomous limit is 200 model turns and can be raised to 1000 in Set
 Environment variables can provide initial values:
 
 ```powershell
-$env:MODELFLARE_API_KEY="..."
-$env:MODELFLARE_BASE_URL="https://your-endpoint/v1"
-$env:MODELFLARE_MODEL="your-model"
+$env:FORGE_API_KEY="..."
+$env:FORGE_API_BASE_URL="https://your-endpoint/v1"
+$env:FORGE_MODEL="deepseek-ai/DeepSeek-V4-Flash-0731"
 npm start
 ```
 
