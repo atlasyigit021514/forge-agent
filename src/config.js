@@ -6,10 +6,10 @@ export const DATA_DIR = path.join(ROOT, ".agent-data");
 
 export const defaults = {
   provider: {
-    name: "ModelFlare",
-    baseUrl: process.env.MODELFLARE_BASE_URL || "",
-    apiKey: process.env.MODELFLARE_API_KEY || "",
-    model: process.env.MODELFLARE_MODEL || "",
+    name: "OpenAI-compatible",
+    baseUrl: process.env.FORGE_API_BASE_URL || "",
+    apiKey: process.env.FORGE_API_KEY || "",
+    model: process.env.FORGE_MODEL || "",
     headers: {},
     includeUsage: false,
     maxRetries: 3,
