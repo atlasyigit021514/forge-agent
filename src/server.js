@@ -3,11 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig, publicConfig, writeJson, DATA_DIR } from "./config.js";
-import { createSession, startSession, sessionView, getSession, subscribeSession, cancelSession } from "./agent.js";
+import { createSession, startSession, sessionView, getSession, subscribeSession, cancelSession, resumeSession } from "./agent.js";
 import { testProvider } from "./provider.js";
 import { getMemories, forget } from "./memory.js";
 import { listSkills, installSkill, downloadSkill } from "./skills.js";
 import { startShell, writeShell, readShell, stopShell, listShells } from "./shells.js";
+import { warmComputerWorker } from "./desktop.js";
 
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public");
 let config = loadConfig();
@@ -78,6 +79,8 @@ const server = http.createServer(async (req, res) => {
     }
     const cancel = url.pathname.match(/^\/api\/sessions\/([^/]+)\/cancel$/);
     if (req.method === "POST" && cancel) return json(res, 202, cancelSession(cancel[1]));
+    const sessionInput = url.pathname.match(/^\/api\/sessions\/([^/]+)\/input$/);
+    if (req.method === "POST" && sessionInput) { const input = await body(req); return json(res, 202, await resumeSession(config, sessionInput[1], input.input)); }
     if (req.method === "GET" && url.pathname === "/api/memories") return json(res, 200, getMemories());
     const memory = url.pathname.match(/^\/api\/memories\/([^/]+)$/);
     if (req.method === "DELETE" && memory) return json(res, 200, forget(memory[1]));
@@ -103,4 +106,7 @@ const server = http.createServer(async (req, res) => {
 
 const port = Number(process.env.PORT || 4317);
 const host = process.env.HOST || "127.0.0.1";
-server.listen(port, host, () => console.log(`Forge Agent running at http://${host}:${port}`));
+server.listen(port, host, () => {
+  console.log(`Forge Agent running at http://${host}:${port}`);
+  warmComputerWorker().catch((error) => console.warn(`Computer worker warm-up failed: ${error.message}`));
+});
