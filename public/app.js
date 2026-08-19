@@ -1,6 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-let config, history = [], busy = false, shellId = null, shellPoll = null, activeSessionId = localStorage.getItem("forge.activeSession"), eventCursor = 0, eventStream = null;
+let config, history = [], busy = false, waitingForInput = false, waitingInputSecret = false, shellId = null, shellPoll = null, activeSessionId = localStorage.getItem("forge.activeSession"), eventCursor = 0, eventStream = null;
 
 async function api(url, options = {}) {
   const response = await fetch(url, { headers: { "content-type": "application/json" }, ...options });
@@ -77,7 +77,8 @@ function addTool(data, result) {
 }
 function setRunStatus(status, message) {
   const box=$("#runStatus"); box.className=`run-status ${status}`; box.querySelector("span").textContent=message||status; $("#activityText").textContent=message||status;
-  const active=["queued","running","waiting","stopping"].includes(status); $("#stopRun").hidden=!active; busy=active; $(".send").disabled=active;
+  const active=["queued","running","waiting","stopping"].includes(status); waitingForInput=status==="waiting"; $("#stopRun").hidden=!active; busy=active; $(".send").disabled=active&&!waitingForInput;
+  $("#prompt").placeholder=waitingForInput?"Type the requested code or answer to resume this task…":"Ask Forge to build or operate…";
 }
 function addProgress(data) { const el=document.createElement("div");el.className=`progress-line ${data.phase||""}`;el.textContent=data.message;$("#feed").append(el);$("#feed").scrollTop=$("#feed").scrollHeight; }
 function handleEvent(e) {
@@ -87,10 +88,12 @@ function handleEvent(e) {
   if(e.type==="tool_request") addTool(e.data);
   if(e.type==="tool_result") addTool({name:e.data.name},e.data);
   if(e.type==="progress") addProgress(e.data);
+  if(e.type==="input_request") { waitingInputSecret=Boolean(e.data.secret); addProgress({phase:"waiting",message:`Input needed: ${e.data.prompt}`}); }
+  if(e.type==="input_received") { waitingForInput=false; waitingInputSecret=false; addProgress({phase:"tool",message:e.data.deliveredToShell?"Input delivered to the running command":"Input received; task resumed"}); }
   if(e.type==="error") { addProgress({phase:"retry",message:e.data.message}); toast(e.data.message,true); }
   if(e.type==="status") { setRunStatus(e.data.status,e.data.message); if(e.data.status==="waiting") fetchSession(); if(["completed","failed","cancelled","limit"].includes(e.data.status)){eventStream?.close();eventStream=null;localStorage.removeItem("forge.activeSession");} }
 }
-async function fetchSession() { if(!activeSessionId)return; try{const session=await api(`/api/sessions/${activeSessionId}?after=${eventCursor}`);session.events.forEach(handleEvent);setRunStatus(session.status,session.status);}catch(e){localStorage.removeItem("forge.activeSession");activeSessionId=null;} }
+async function fetchSession() { if(!activeSessionId)return; try{const session=await api(`/api/sessions/${activeSessionId}?after=${eventCursor}`);session.events.forEach(handleEvent);waitingInputSecret=Boolean(session.pending?.secret);setRunStatus(session.status,session.pending?.prompt||session.status);}catch(e){localStorage.removeItem("forge.activeSession");activeSessionId=null;} }
 function connectEvents() {
   eventStream?.close(); if(!activeSessionId)return;
   eventStream=new EventSource(`/api/sessions/${activeSessionId}/events?after=${eventCursor}`);
@@ -98,7 +101,9 @@ function connectEvents() {
   eventStream.onerror=()=>{eventStream?.close();eventStream=null;if(busy)setTimeout(()=>{fetchSession();connectEvents()},1200)};
 }
 async function send(text) {
-  if(!text.trim()||busy)return; busy=true; addMessage("user",text); history.push({role:"user",content:text}); $("#prompt").value="";
+  if(!text.trim())return;
+  if(waitingForInput&&activeSessionId){const shown=waitingInputSecret?"••••••••":text;addMessage("user",shown);$("#prompt").value="";setRunStatus("queued","Sending input to the waiting task");try{await api(`/api/sessions/${activeSessionId}/input`,{method:"POST",body:JSON.stringify({input:text})});connectEvents()}catch(e){addMessage("assistant",`Error: ${e.message}`);setRunStatus("waiting","Input is still required")}return}
+  if(busy)return; busy=true; addMessage("user",text); history.push({role:"user",content:text}); $("#prompt").value="";
   setRunStatus("queued","Starting autonomous run");
   try { const session=await api("/api/chat",{method:"POST",body:JSON.stringify({message:text,history:history.slice(0,-1)})}); activeSessionId=session.id;eventCursor=0;localStorage.setItem("forge.activeSession",activeSessionId);connectEvents(); }
   catch(e){addMessage("assistant",`Error: ${e.message}`);setRunStatus("failed","Failed to start")}
